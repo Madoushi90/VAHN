@@ -1,0 +1,3 @@
+[submodule "lib/sahn"]
+	path = lib/sahn
+	url = git://schizius.no-ip.org/SAHN.git
