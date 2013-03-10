@@ -1,0 +1,16 @@
+Node 11 localhost, 10130 0 0 links 12 21
+Node 12 localhost, 10131 0 0 links 11 13 22
+Node 13 localhost, 10132 0 0 links 12 14 23
+Node 14 localhost, 10133 0 0 links 13 24
+Node 21 localhost, 10134 0 0 links 11 22 31
+Node 22 localhost, 10135 0 0 links 12 21 23 32
+Node 23 localhost, 10136 0 0 links 13 22 24 33
+Node 24 localhost, 10137 0 0 links 14 23 34
+Node 31 localhost, 10138 0 0 links 21 32 41
+Node 32 localhost, 10139 0 0 links 22 31 33 42
+Node 33 localhost, 10140 0 0 links 23 32 34 43
+Node 34 localhost, 10141 0 0 links 24 33 44
+Node 41 localhost, 10142 0 0 links 31 42
+Node 42 localhost, 10143 0 0 links 32 41 43
+Node 43 localhost, 10144 0 0 links 33 42 44
+Node 44 localhost, 10145 0 0 links 34 43
