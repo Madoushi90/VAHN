@@ -1,0 +1,6 @@
+Node 1 localhost, 10130 0 0 links 2
+Node 2 localhost, 10131 0 0 links 3 4
+Node 3 localhost, 10132 0 0 links 2 5
+Node 4 localhost, 10133 0 0 links 2 5
+Node 5 localhost, 10134 0 0 links 3 4
+Node 6 localhost, 10135 0 0 links 5
