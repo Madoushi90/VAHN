@@ -1,3 +1,5 @@
+SAHN_VERSION = 0.2.1
+
 CC = gcc
 CFLAGS = -c -Isrc -Ilib
 debug : CFLAGS += -g -O0
@@ -21,7 +23,7 @@ $(OBJDIR):
 
 lib/libsahn.so:
 	@$(MAKE) -C lib/sahn dist
-	@mv lib/sahn/dist/libsahn.so lib/sahn/dist/sahn.h lib
+	@mv lib/sahn/libsahn-$(SAHN_VERSION)/libsahn.so lib/sahn/libsahn-$(SAHN_VERSION)/sahn.h lib
 
 lib/libsahn_d.so:
 	@$(MAKE) -C lib/sahn debug
