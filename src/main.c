@@ -12,11 +12,41 @@ struct vahn_packet {
 
 uint16_t peer_addr;
 
-void cap_thread(void* param){
+void* cap_thread(void* param){
+  uint8_t buffer[114];
+  int err;
+
+  snd_pcm_t* pcm_handle;
+  snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_CAPTURE;
+  snd_pcm_hw_params_t* pcm_hwparams;
+  char* pcm_name = strdup("plughw:0,0");
+
+  snd_pcm_hw_params_alloca(&pcm_hwparams);
+  snd_pcm_open(&pcm_handle, pcm_name, pcm_stream, 0);
+
+  snd_pcm_hw_params_any(pcm_handle, pcm_hwparams);
+  snd_pcm_hw_params_set_access(pcm_handle, pcm_hwparams, SND_PCM_ACCESS_RW_INTERLEAVED); //Interleaved
+  snd_pcm_hw_params_set_format(pcm_handle, pcm_hwparams, SND_PCM_FORMAT_S16_LE);         //16bit samples
+  snd_pcm_hw_params_set_rate(pcm_handle, pcm_hwparams, 8000, 0);                         //8000hz
+  snd_pcm_hw_params_set_channels(pcm_handle, pcm_hwparams, 1);                           //Mono
+  snd_pcm_hw_params_set_periods(pcm_handle, pcm_hwparams, 2, 0);                         //Double buffer
+  snd_pcm_hw_params_set_buffer_size(pcm_handle, pcm_hwparams, 228);
+
+  snd_pcm_hw_params(pcm_handle, pcm_hwparams);
   
+  while(1){
+    if(snd_pcm_readi(pcm_handle,buffer,57) < 0){
+      snd_pcm_prepare(pcm_handle);
+      continue;
+    }
+
+    sahn_send(peer_addr,buffer,114);
+  }
 }
 
-void play_thread(void* param){
+void* play_thread(void* param){
+  uint8_t buffer[114];
+
   snd_pcm_t* pcm_handle;
   snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_PLAYBACK;
   snd_pcm_hw_params_t* pcm_hwparams;
@@ -30,8 +60,18 @@ void play_thread(void* param){
   snd_pcm_hw_params_set_format(pcm_handle, pcm_hwparams, SND_PCM_FORMAT_S16_LE);         //16bit samples
   snd_pcm_hw_params_set_rate(pcm_handle, pcm_hwparams, 8000, 0);                         //8000hz
   snd_pcm_hw_params_set_channels(pcm_handle, pcm_hwparams, 1);                           //Mono
-  snd_pcm_hw_params_set_periods(pcm_handle, pcm_hwparams, 2, 0);
-  
+  snd_pcm_hw_params_set_periods(pcm_handle, pcm_hwparams, 2, 0);                         //Double buffer
+  snd_pcm_hw_params_set_buffer_size(pcm_handle, pcm_hwparams, 228);
+
+  snd_pcm_hw_params(pcm_handle, pcm_hwparams);
+
+  while(1){
+    sahn_recv(NULL,buffer,114);
+
+    while(snd_pcm_writei(pcm_handle,buffer,57) < 0){
+      snd_pcm_prepare(pcm_handle);
+    }
+  }
 }
 
 int main(int argc, char** argv){

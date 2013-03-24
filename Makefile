@@ -1,11 +1,11 @@
 SAHN_VERSION = 0.2.1
 
 CC = gcc
-CFLAGS = -c -Isrc -Ilib
+CFLAGS = -c -Isrc -Ilib -pthread
 debug : CFLAGS += -g -O0
 
 LL = gcc
-LFLAGS = -Wl,-rpath,lib -Llib -lsahn$(D) -lasound
+LFLAGS = -Wl,-rpath,lib -Llib -lsahn$(D) -lasound -pthread
 
 OBJDIR = obj
 
