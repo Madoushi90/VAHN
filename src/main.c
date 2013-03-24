@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include <alsa/asoundlib.h>
+#include <pthread.h>
 
 struct vahn_packet {
   uint8_t type;
@@ -39,8 +40,10 @@ int main(int argc, char** argv){
     exit(1);
   }
   
+  char buf[64];
   uint16_t addr_in;
   struct vahn_packet packet_out = {0}, packet_in = {0};
+  pthread_t play, cap;
 
   sahn_init(argv[1],atoi(argv[2]));
 
@@ -62,6 +65,21 @@ int main(int argc, char** argv){
     packet_out.type = 2;
 
     sahn_send(peer_addr,&packet_out,1);
+  }
+
+  pthread_create(&play,NULL,play_thread,NULL);
+  pthread_create(&cap,NULL,cap_thread,NULL);
+
+  while(1){
+    scanf("%s\n",buf);
+    if(strcmp("stop",buf) == 0){
+      pthread_cancel(play);
+      pthread_cancel(cap);
+
+      pthread_join(play,NULL);
+      pthread_join(cap,NULL);
+      break;
+    }
   }
 
   sahn_cleanup();
