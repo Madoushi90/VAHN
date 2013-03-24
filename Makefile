@@ -5,7 +5,7 @@ CFLAGS = -c -Isrc -Ilib
 debug : CFLAGS += -g -O0
 
 LL = gcc
-LFLAGS = -Wl,-rpath,lib -Llib -lsahn$(D)
+LFLAGS = -Wl,-rpath,lib -Llib -lsahn$(D) -lasound
 
 OBJDIR = obj
 
