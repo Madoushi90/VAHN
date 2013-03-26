@@ -42,7 +42,7 @@ void* cap_thread(void* param){
       continue;
     }
 
-    sahn_send(peer_addr,packet_out,116);
+    sahn_send(peer_addr,&packet_out,116);
   }
 }
 
@@ -68,7 +68,7 @@ void* play_thread(void* param){
   snd_pcm_hw_params(pcm_handle, pcm_hwparams);
 
   while(1){
-    sahn_recv(NULL,packet_in,116);
+    sahn_recv(NULL,&packet_in,116);
 
     switch(packet_in.type){
     case 3:
