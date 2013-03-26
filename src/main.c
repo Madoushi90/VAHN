@@ -13,9 +13,9 @@ struct vahn_packet {
 
 uint16_t peer_addr;
 
-struct vahn_packet packet_in = {0}, packet_out = {0};
-
 void* cap_thread(void* param){
+  struct vahn_packet packet_out = {0};
+
   snd_pcm_t* pcm_handle;
   snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_CAPTURE;
   snd_pcm_hw_params_t* pcm_hwparams;
@@ -47,6 +47,8 @@ void* cap_thread(void* param){
 }
 
 void* play_thread(void* param){
+  struct vahn_packet packet_in = {0};
+
   snd_pcm_t* pcm_handle;
   snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_PLAYBACK;
   snd_pcm_hw_params_t* pcm_hwparams;
