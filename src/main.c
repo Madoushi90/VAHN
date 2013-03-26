@@ -7,19 +7,21 @@
 
 struct vahn_packet {
   uint8_t type;
-  uint8_t data[115];
-};
+  uint8_t _padding;
+  uint8_t data[114];
+} __attribute__((packed));
 
 uint16_t peer_addr;
 
-void* cap_thread(void* param){
-  uint8_t buffer[114];
-  int err;
+struct vahn_packet packet_in = {0}, packet_out = {0};
 
+void* cap_thread(void* param){
   snd_pcm_t* pcm_handle;
   snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_CAPTURE;
   snd_pcm_hw_params_t* pcm_hwparams;
   char* pcm_name = strdup("plughw:0,0");
+
+  packet_out.type = 19;
 
   snd_pcm_hw_params_alloca(&pcm_hwparams);
   snd_pcm_open(&pcm_handle, pcm_name, pcm_stream, 0);
@@ -35,18 +37,16 @@ void* cap_thread(void* param){
   snd_pcm_hw_params(pcm_handle, pcm_hwparams);
   
   while(1){
-    if(snd_pcm_readi(pcm_handle,buffer,57) < 0){
+    if(snd_pcm_readi(pcm_handle,&packet_out.data,57) < 0){
       snd_pcm_prepare(pcm_handle);
       continue;
     }
 
-    sahn_send(peer_addr,buffer,114);
+    sahn_send(peer_addr,packet_out,116);
   }
 }
 
 void* play_thread(void* param){
-  uint8_t buffer[114];
-
   snd_pcm_t* pcm_handle;
   snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_PLAYBACK;
   snd_pcm_hw_params_t* pcm_hwparams;
@@ -66,10 +66,17 @@ void* play_thread(void* param){
   snd_pcm_hw_params(pcm_handle, pcm_hwparams);
 
   while(1){
-    sahn_recv(NULL,buffer,114);
+    sahn_recv(NULL,packet_in,116);
 
-    while(snd_pcm_writei(pcm_handle,buffer,57) < 0){
-      snd_pcm_prepare(pcm_handle);
+    switch(packet_in.type){
+    case 3:
+      //TODO
+      break;
+    case 19:
+      while(snd_pcm_writei(pcm_handle,&packet_in.data,57) < 0){
+	snd_pcm_prepare(pcm_handle);
+      }
+      break;
     }
   }
 }
