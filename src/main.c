@@ -19,7 +19,7 @@ int init_audio(pa_simple** handle, int pa_stream){
   
   ss.format = PA_SAMPLE_S16NE;
   ss.channels = 1;
-  ss.rate = 44100;
+  ss.rate = 8000;
   
   *handle = pa_simple_new(NULL,"Voice over AdHoc Network",pa_stream,NULL,"Music",&ss,NULL,NULL,NULL);
 }
