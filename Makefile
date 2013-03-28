@@ -14,9 +14,9 @@ OBJ = $(OBJDIR)/main.o
 debug : D = _d
 
 
-all: lib/libsahn.so $(OBJDIR) vahn
+all: lib/libsahn.so $(OBJDIR) vahn node
 
-debug: lib/libsahn_d.so $(OBJDIR) vahn
+debug: lib/libsahn_d.so $(OBJDIR) vahn node
 
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
@@ -32,10 +32,14 @@ lib/libsahn_d.so:
 
 clean:
 	@$(MAKE) -C lib/sahn clean
-	@rm -rf $(OBJDIR) vahn lib/sahn.h lib/libsahn.so lib/libsahn_d.so
+	@rm -rf $(OBJDIR) vahn lib/sahn.h lib/libsahn.so lib/libsahn_d.so node
 
 vahn: $(OBJ)
 	$(LL) $(LFLAGS) -o vahn $(OBJ)
+
+node: src/node.c
+	$(CC) $(CFLAGS) -o $(OBJDIR)/node.o src/node.c
+	$(LL) $(LFLAGS) -o node $(OBJDIR)/node.o
 
 $(OBJDIR)/main.o: src/main.c
 	$(CC) $(CFLAGS) -o $(OBJDIR)/main.o src/main.c
