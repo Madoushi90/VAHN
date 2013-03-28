@@ -5,7 +5,7 @@ CFLAGS = -c -Isrc -Ilib -pthread
 debug : CFLAGS += -g -O0
 
 LL = gcc
-LFLAGS = -Wl,-rpath,lib -Llib -lsahn$(D) -lasound -pthread
+LFLAGS = -Wl,-rpath,lib -Llib -lsahn$(D) -lpulse-simple -pthread
 
 OBJDIR = obj
 

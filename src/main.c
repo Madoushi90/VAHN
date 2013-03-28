@@ -1,9 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <alsa/asoundlib.h>
 #include <pthread.h>
+
+#include <pulse/def.h>
+#include <pulse/simple.h>
 
 struct vahn_packet {
   uint8_t type;
@@ -13,44 +14,25 @@ struct vahn_packet {
 
 uint16_t peer_addr;
 
-int init_audio(snd_pcm_t** handle, snd_pcm_stream_t pcm_stream){
-  int err;
-  char* pcm_name = "plughw:0,0";
-  snd_pcm_hw_params_t* hwparams;
-
-  if((err = snd_pcm_open(handle, pcm_name, pcm_stream, 0)) < 0){
-    printf("Could not open device (error %d: %s)\n",err,snd_strerror(err));
-    exit(1);
-  }
-
-  snd_pcm_hw_params_malloc(&hwparams);
-
-  snd_pcm_hw_params_any(*handle, hwparams);
-  snd_pcm_hw_params_set_access(*handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED); //Interleaved
-  snd_pcm_hw_params_set_format(*handle, hwparams, SND_PCM_FORMAT_S16_LE);         //16bit samples
-  snd_pcm_hw_params_set_rate(*handle, hwparams, 8000, 0);                         //8000hz
-  snd_pcm_hw_params_set_channels(*handle, hwparams, 1);                           //Mono
-  snd_pcm_hw_params_set_periods(*handle, hwparams, 2, 0);                         //Double buffer
-  snd_pcm_hw_params_set_buffer_size(*handle, hwparams, 228);
-
-  snd_pcm_hw_params(*handle, hwparams);
-
-  snd_pcm_hw_params_free(hwparams);
+int init_audio(pa_simple** handle, int pa_stream){
+  pa_sample_spec ss;
+  
+  ss.format = PA_SAMPLE_S16NE;
+  ss.channels = 1;
+  ss.rate = 44100;
+  
+  *handle = pa_simple_new(NULL,"Voice over AdHoc Network",pa_stream,NULL,"Music",&ss,NULL,NULL,NULL);
 }
 
 void* cap_thread(void* param){
   struct vahn_packet packet_out = {.type = 19};
 
-  snd_pcm_t* pcm_handle;
+  pa_simple* pa_handle;
 
-  init_audio(&pcm_handle,SND_PCM_STREAM_CAPTURE);
+  init_audio(&pa_handle,PA_STREAM_RECORD);
 
   while(1){
-    if(snd_pcm_readi(pcm_handle,&packet_out.data,57) < 0){
-      snd_pcm_prepare(pcm_handle);
-      continue;
-    }
-
+    pa_simple_read(pa_handle,&packet_out.data,114,NULL);
     sahn_send(peer_addr,&packet_out,116);
   }
 }
@@ -58,8 +40,9 @@ void* cap_thread(void* param){
 void* play_thread(void* param){
   struct vahn_packet packet_in = {0};
 
-  snd_pcm_t* pcm_handle;
-  init_audio(&pcm_handle,SND_PCM_STREAM_PLAYBACK);
+  pa_simple* pa_handle;
+
+  init_audio(&pa_handle,PA_STREAM_PLAYBACK);
 
   while(1){
     sahn_recv(NULL,&packet_in,116);
@@ -69,9 +52,7 @@ void* play_thread(void* param){
       //TODO
       break;
     case 19:
-      while(snd_pcm_writei(pcm_handle,&packet_in.data,57) < 0){
-	snd_pcm_prepare(pcm_handle);
-      }
+      pa_simple_write(pa_handle,packet_in.data,114,NULL);
       break;
     }
   }
