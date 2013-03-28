@@ -13,29 +13,38 @@ struct vahn_packet {
 
 uint16_t peer_addr;
 
+int init_audio(snd_pcm_t** handle, snd_pcm_stream_t pcm_stream){
+  int err;
+  char* pcm_name = "plughw:0,0";
+  snd_pcm_hw_params_t* hwparams;
+
+  if((err = snd_pcm_open(handle, pcm_name, pcm_stream, 0)) < 0){
+    printf("Could not open device (error %d: %s)\n",err,snd_strerror(err));
+    exit(1);
+  }
+
+  snd_pcm_hw_params_malloc(&hwparams);
+
+  snd_pcm_hw_params_any(*handle, hwparams);
+  snd_pcm_hw_params_set_access(*handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED); //Interleaved
+  snd_pcm_hw_params_set_format(*handle, hwparams, SND_PCM_FORMAT_S16_LE);         //16bit samples
+  snd_pcm_hw_params_set_rate(*handle, hwparams, 8000, 0);                         //8000hz
+  snd_pcm_hw_params_set_channels(*handle, hwparams, 1);                           //Mono
+  snd_pcm_hw_params_set_periods(*handle, hwparams, 2, 0);                         //Double buffer
+  snd_pcm_hw_params_set_buffer_size(*handle, hwparams, 228);
+
+  snd_pcm_hw_params(*handle, hwparams);
+
+  snd_pcm_hw_params_free(hwparams);
+}
+
 void* cap_thread(void* param){
-  struct vahn_packet packet_out = {0};
+  struct vahn_packet packet_out = {.type = 19};
 
   snd_pcm_t* pcm_handle;
-  snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_CAPTURE;
-  snd_pcm_hw_params_t* pcm_hwparams;
-  char* pcm_name = strdup("plughw:0,0");
 
-  packet_out.type = 19;
+  init_audio(&pcm_handle,SND_PCM_STREAM_CAPTURE);
 
-  snd_pcm_hw_params_alloca(&pcm_hwparams);
-  snd_pcm_open(&pcm_handle, pcm_name, pcm_stream, 0);
-
-  snd_pcm_hw_params_any(pcm_handle, pcm_hwparams);
-  snd_pcm_hw_params_set_access(pcm_handle, pcm_hwparams, SND_PCM_ACCESS_RW_INTERLEAVED); //Interleaved
-  snd_pcm_hw_params_set_format(pcm_handle, pcm_hwparams, SND_PCM_FORMAT_S16_LE);         //16bit samples
-  snd_pcm_hw_params_set_rate(pcm_handle, pcm_hwparams, 8000, 0);                         //8000hz
-  snd_pcm_hw_params_set_channels(pcm_handle, pcm_hwparams, 1);                           //Mono
-  snd_pcm_hw_params_set_periods(pcm_handle, pcm_hwparams, 2, 0);                         //Double buffer
-  snd_pcm_hw_params_set_buffer_size(pcm_handle, pcm_hwparams, 228);
-
-  snd_pcm_hw_params(pcm_handle, pcm_hwparams);
-  
   while(1){
     if(snd_pcm_readi(pcm_handle,&packet_out.data,57) < 0){
       snd_pcm_prepare(pcm_handle);
@@ -50,22 +59,7 @@ void* play_thread(void* param){
   struct vahn_packet packet_in = {0};
 
   snd_pcm_t* pcm_handle;
-  snd_pcm_stream_t pcm_stream = SND_PCM_STREAM_PLAYBACK;
-  snd_pcm_hw_params_t* pcm_hwparams;
-  char* pcm_name = strdup("plughw:0,0");
-
-  snd_pcm_hw_params_alloca(&pcm_hwparams);
-  snd_pcm_open(&pcm_handle, pcm_name, pcm_stream, 0);
-
-  snd_pcm_hw_params_any(pcm_handle, pcm_hwparams);
-  snd_pcm_hw_params_set_access(pcm_handle, pcm_hwparams, SND_PCM_ACCESS_RW_INTERLEAVED); //Interleaved
-  snd_pcm_hw_params_set_format(pcm_handle, pcm_hwparams, SND_PCM_FORMAT_S16_LE);         //16bit samples
-  snd_pcm_hw_params_set_rate(pcm_handle, pcm_hwparams, 8000, 0);                         //8000hz
-  snd_pcm_hw_params_set_channels(pcm_handle, pcm_hwparams, 1);                           //Mono
-  snd_pcm_hw_params_set_periods(pcm_handle, pcm_hwparams, 2, 0);                         //Double buffer
-  snd_pcm_hw_params_set_buffer_size(pcm_handle, pcm_hwparams, 228);
-
-  snd_pcm_hw_params(pcm_handle, pcm_hwparams);
+  init_audio(&pcm_handle,SND_PCM_STREAM_PLAYBACK);
 
   while(1){
     sahn_recv(NULL,&packet_in,116);
@@ -96,6 +90,7 @@ int main(int argc, char** argv){
 
   sahn_init(argv[1],atoi(argv[2]));
 
+  printf("Connecting...\n");
   if(argc > 3){
     peer_addr = atoi(argv[3]);
     packet_out.type = 1;
@@ -115,6 +110,7 @@ int main(int argc, char** argv){
 
     sahn_send(peer_addr,&packet_out,1);
   }
+  printf("Connected\n");
 
   pthread_create(&play,NULL,play_thread,NULL);
   pthread_create(&cap,NULL,cap_thread,NULL);
