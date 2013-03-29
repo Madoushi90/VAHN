@@ -2,7 +2,7 @@
 
 for i in $(seq $1 $2); do
 	for j in $(seq 1 4); do
-		./node examples/grid $i$j > ./out-$i$j &
+		./node examples/grid $i$j | tee out-$i$j &
 	done
 done
 
