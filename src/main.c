@@ -69,7 +69,7 @@ int main(int argc, char** argv){
   struct vahn_packet packet_out = {0}, packet_in = {0};
   pthread_t play, cap;
 
-  sahn_init(argv[1],atoi(argv[2]));
+  sahn_init(argv[1],atoi(argv[2]),NULL);
 
   printf("Connecting...\n");
   if(argc > 3){

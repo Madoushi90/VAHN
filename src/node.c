@@ -16,7 +16,7 @@ int main(int argc, char** argv){
   pthread_mutex_init(&lock,NULL);
   pthread_cond_init(&wait,NULL);
 
-  sahn_init(argv[1],atoi(argv[2]));
+  sahn_init(argv[1],atoi(argv[2]),NULL);
 
   pthread_cond_wait(&wait,&lock);
 

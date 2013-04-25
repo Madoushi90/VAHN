@@ -1,4 +1,4 @@
-SAHN_VERSION = b6a2c3b
+SAHN_VERSION = fc008ab
 
 CC = gcc
 CFLAGS = -c -Isrc -Ilib -pthread
