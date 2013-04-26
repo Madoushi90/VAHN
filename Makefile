@@ -27,7 +27,7 @@ lib/libsahn.so:
 
 lib/libsahn_d.so:
 	@$(MAKE) -C lib/sahn debug
-	@cp lib/sahn/sahn/sahn.h lib
+	@cp lib/sahn/src/sahn.h lib
 	@mv lib/sahn/bin/libsahn_d.so lib
 
 clean:

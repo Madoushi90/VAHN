@@ -71,27 +71,13 @@ int main(int argc, char** argv){
 
   sahn_init(argv[1],atoi(argv[2]),NULL);
 
-  printf("Connecting...\n");
   if(argc > 3){
     peer_addr = atoi(argv[3]);
-    packet_out.type = 1;
-
-    sahn_send(peer_addr,&packet_out,1);
-
-    do {
-      sahn_recv(&addr_in,&packet_in,116);
-    } while(addr_in != peer_addr && packet_in.type != 2);
   } else {
-    do {
-      sahn_recv(&addr_in,&packet_in,116);
-    } while(packet_in.type != 1);
-
+    sahn_recv(&addr_in,&packet_in,116);
     peer_addr = addr_in;
-    packet_out.type = 2;
-
-    sahn_send(peer_addr,&packet_out,1);
   }
-  printf("Connected\n");
+  printf("Connected?\n");
 
   pthread_create(&play,NULL,play_thread,NULL);
   pthread_create(&cap,NULL,cap_thread,NULL);
